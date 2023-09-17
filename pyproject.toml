@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "responsive-images"
+version = "0.1.0"
+description = "Responsive images github action"
+authors = ["Matt Struble <mattstruble@outlook.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+picopt = "^3.3.6"
+Wand = "^0.6.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
