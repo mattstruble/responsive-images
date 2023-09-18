@@ -1,4 +1,7 @@
-FROM debian:11-slim AS deb_extractor
+#############################
+### DEB PACKAGE EXTRACTOR ###
+#############################
+FROM debian:11-slim AS deb-extractor
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -22,24 +25,33 @@ RUN apt-get update && \
             echo "Process: ${package_name}"; \
             dpkg --ctrl-tarfile $deb | tar -Oxvf - ./control > /dpkg/var/lib/dpkg/status.d/${package_name}; \
             dpkg --extract $deb /dpkg || exit 10; \
-    done
+    done && \
+    rm -rf /var/cache/apt/* && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /tmp/*
 
 
-FROM debian:11-slim AS builder
+#######################
+### MOZJPEG BUILDER ###
+#######################
+FROM debian:11-slim AS mozjpeg-builder
 
 ARG MOZJPEG_VERSION=3.3.1
-
 
 WORKDIR /tmp
 
 RUN apt-get update && apt-get install -y \
-	autoconf \
-	automake \
-	build-essential \
-	libtool \
-	nasm \
-	pkgconf \
-	tar
+        autoconf \
+        automake \
+        build-essential \
+        libtool \
+        nasm \
+        pkgconf \
+        tar \
+        && \
+    rm -rf /var/cache/apt/* && \
+    rm -rf /var/lib/apt/lists/*
+
 
 ADD https://github.com/mozilla/mozjpeg/archive/v${MOZJPEG_VERSION}.tar.gz ./
 RUN tar -xzf v${MOZJPEG_VERSION}.tar.gz && \
@@ -47,9 +59,13 @@ RUN tar -xzf v${MOZJPEG_VERSION}.tar.gz && \
 	autoreconf -fiv && \
 	./configure --with-jpeg8 && \
 	make && \
-	make install
+	make install && \
+    rm -rf /tmp/*
 
 
+###########################
+### POETRY VENV BUILDER ###
+###########################
 FROM debian:11-slim AS venv-builder
 
 ARG POETRY_VERSION=1.6.1
@@ -61,43 +77,46 @@ ENV PYTHONFAULTHANDLER=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1
 
-RUN apt-get update && apt-get install --no-install-recommends --no-install-suggests -y \
-                        python3-venv \
-                        gcc \
-                        libpython3-dev && \
-    apt-get clean && \
+RUN apt-get update && \
+    apt-get install --no-install-recommends --no-install-suggests -y \
+            python3-venv \
+            python3-pip \
+            gcc \
+            libpython3-dev && \
     apt-get clean && \
     apt-get autoremove -y && \
     rm -rf /var/cache/apt/* && \
     rm -rf /tmp/* && \
     rm -rf /var/lib/apt/lists/* && \
     python3 -m venv /venv && \
-    /venv/bin/pip install --upgrade pip setuptools wheel && \
-    /venv/bin/pip install "poetry==$POETRY_VERSION"
+    python3 -m pip install --upgrade pip setuptools wheel && \
+    python3 -m pip install "poetry==$POETRY_VERSION"
 
+WORKDIR /tmp
 
 COPY pyproject.toml poetry.lock ./
 
-RUN /venv/bin/poetry config virtualenvs.create false && \
-    /venv/bin/poetry config virtualenvs.path /venv && \
-    /venv/bin/poetry install --no-root --no-dev && \
-    rm -rf /root/.cache/pypoetry /root/.cache/pip
-#RUN poetry
-#    rm -rf /root/.cache/pypoetry /root/.cache/pip
+RUN python3 -m poetry export -f requirements.txt --with-credentials \
+    | /venv/bin/pip install -r /dev/stdin && \
+    rm -rf /tmp/*
 
+
+#############################
+### DISTROLESS PY RUNTIME ###
+#############################
+FROM gcr.io/distroless/python3-debian11
 # A distroless container image with Python and some basics like SSL certificates
 # https://github.com/GoogleContainerTools/distroless
-FROM gcr.io/distroless/python3-debian11
-#ENV VIRTUAL_ENV="/venv"
 
 COPY --from=venv-builder /venv /venv
-COPY --from=builder /opt/mozjpeg /opt/mozjpeg
-COPY --from=deb_extractor /dpkg /
-# Configure dot plugins
-#RUN python3 -m venv /venv
-ENV PATH="/venv/bin:$PATH"
-WORKDIR /app
+COPY --from=mozjpeg-builder /opt/mozjpeg /opt/mozjpeg
+COPY --from=deb-extractor /dpkg /
+
+ENV PATH="/venv/bin:$PATH" \
+    VIRTUAL_ENV="/venv" \
+    PYTHONPATH="/venv:/app:$PYTHONPATH"
+
 COPY ./app /app
-#:ENV PYTHONPATH="/venv"
+
 ENTRYPOINT ["/venv/bin/python3"]
 CMD ["/app/main.py"]

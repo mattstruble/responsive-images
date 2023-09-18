@@ -1,6 +1,6 @@
 import os
 
-# import picopt  # noqa
+import picopt  # noqa
 import wand  # noqa importing to prove dependency
 
 
