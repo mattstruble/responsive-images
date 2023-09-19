@@ -51,7 +51,7 @@ exclude = ".tox,.eggs,tests,test_*,venv"
 exclude = "/(.git|.mypy_cache|.pytest_cache|.venv|__pycache__|dist|node_modules|test-results|typings)/"
 
 [tool.codespell]
-skip = ".git,.mypy_cache,.pytest_cache,.venv,*~,./dist,./node_modules,./package-lock.json,./poetry.lock,./test-results"
+skip = ".git,.mypy_cache,.pytest_cache,*.lock,.venv,*~,./dist,./node_modules,./package-lock.json,./poetry.lock,./test-results"
 builtin = "clear,rare,code"
 check-hidden = true
 
