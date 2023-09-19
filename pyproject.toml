@@ -136,47 +136,18 @@ exclude = "*~,.git/*,.mypy_cache/*,.pytest_cache/*,.venv/*,__pycache__/*,dist/*,
 
 [tool.ruff]
 extend-exclude = ["cache", "codex/_vendor_haystack", "frontend", "typings"]
-ignore = ["S101", "D203", "D213"]
+ignore = ["S101", "D203", "D213", "UP009"]
 extend-select = [
-  "A",
-  "ARG",
-  "B",
-  "B9",
-  "C",
-  "C4",
-  "C90",
-  "D",
-  "DJ",
-  "DTZ",
-  "E",
-  "EM",
-  "EXE",
-  "F",
-  "I",
-  "ICN",
-  "INP",
-  "ISC",
-  "PIE",
-  "PL",
-  "PT",
-  "PTH",
-  "PYI",
-  "Q",
-  "N",
-  "RET",
-  "RSE",
-  "RUF",
-  "S",
-  "SIM",
-  "SLF",
-  "T10",
-  "T20",
-  "TCH",
-  "TID",
-  "TRY",
-  "UP",
-  "W",
-  "YTT"
+    "E", # pydocstyle
+    "F", # pyflakes
+    "I", # isort
+    "PL", # Pylint
+    "B", # flake8-bugbear
+    "PT", # flake8-pytest-style
+    "TID", # flake8-tidy-imports
+    "PERF", # Perflint
+    "ERA", # eradicate
+    "C90", # mccabe
 ]
 external = ["V101"]
 target-version = "py39"
