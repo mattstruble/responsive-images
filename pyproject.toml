@@ -188,6 +188,13 @@ task-tags = ["TODO", "FIXME", "XXX", "http", "HACK"]
 [tool.ruff.pycodestyle]
 ignore-overlong-task-comments = true
 
+[tool.skjold]
+sources = ["pyup", "gemnasium"]
+report_format = "json"
+cache_dir = ".skjold_cache"
+cache_expires = 86400
+verbose = true
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
