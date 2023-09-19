@@ -127,7 +127,7 @@ repos:
             "-g",
             "*.py",
             "-l",
-            "templates/gpl3.md.jinja2",
+            "tools/templates/gpl3.md.jinja2",
           ]
 
   # Conventional Commit
