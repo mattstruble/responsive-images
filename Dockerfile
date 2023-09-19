@@ -3,6 +3,7 @@
 #############################
 FROM debian:11-slim AS deb-extractor
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         # install only deps
@@ -10,18 +11,19 @@ RUN apt-get update && \
         ca-certificates \
         openssl \
         && \
-    apt-get install -y -d -o=dir::cache=/tmp \
+    apt-get install --no-install-recommends -y -d -o=dir::cache=/tmp \
             # Image manipulation dependencies
             imagemagick \
             optipng \
             gifsicle \
             python3-pil \
+            libjpeg-progs \
             webp \
             && \
     mkdir -p /dpkg/var/lib/dpkg/status.d/ && \
     cd /tmp/archives && \
     for deb in *.deb; do \
-            package_name=$(dpkg-deb -I ${deb} | awk '/^ Package: .*$/ {print $2}'); \
+            package_name=$(dpkg-deb -I ${deb} | awk "/^ Package: .*$/ {print $2}"); \
             echo "Process: ${package_name}"; \
             dpkg --ctrl-tarfile $deb | tar -Oxvf - ./control > /dpkg/var/lib/dpkg/status.d/${package_name}; \
             dpkg --extract $deb /dpkg || exit 10; \
@@ -40,7 +42,7 @@ ARG MOZJPEG_VERSION=3.3.1
 
 WORKDIR /tmp
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
         autoconf \
         automake \
         build-essential \
@@ -89,13 +91,14 @@ RUN apt-get update && \
     rm -rf /tmp/* && \
     rm -rf /var/lib/apt/lists/* && \
     python3 -m venv /venv && \
-    python3 -m pip install --upgrade pip setuptools wheel && \
+    # python3 -m pip install --upgrade pip setuptools wheel && \
     python3 -m pip install "poetry==$POETRY_VERSION"
 
 WORKDIR /tmp
 
 COPY pyproject.toml poetry.lock ./
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN python3 -m poetry export -f requirements.txt --with-credentials \
     | /venv/bin/pip install -r /dev/stdin && \
     rm -rf /tmp/*
@@ -104,6 +107,7 @@ RUN python3 -m poetry export -f requirements.txt --with-credentials \
 #############################
 ### DISTROLESS PY RUNTIME ###
 #############################
+# hadolint ignore=DL3006
 FROM gcr.io/distroless/python3-debian11
 # A distroless container image with Python and some basics like SSL certificates
 # https://github.com/GoogleContainerTools/distroless
