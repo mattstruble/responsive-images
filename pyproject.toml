@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "responsive-images"
-version = "0.1.0"
+version = "0.0.0"
 description = "A multi format lossless image optimizer for web"
 authors = ["Matt Struble <mattstruble@outlook.com>"]
 license = "MIT"
@@ -160,6 +160,18 @@ task-tags = ["TODO", "FIXME", "XXX", "http", "HACK"]
 
 [tool.ruff.pycodestyle]
 ignore-overlong-task-comments = true
+
+[tool.semantic_release]
+version_variable = [
+    "app/__init__.py:__version__"
+]
+version_toml = [
+    "pyproject.toml:tool.poetry.version"
+]
+major_on_zero = true
+branch = "main"
+upload_to_release = false
+upload_to_pypi = false
 
 [tool.skjold]
 sources = ["pyup", "gemnasium"]
