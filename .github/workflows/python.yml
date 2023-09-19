@@ -1,18 +1,42 @@
 name: Lint
-on: [push, pull_request]
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+    paths: ["**.py"]
+
 jobs:
-  lint:
-    name: Lint
+  test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Set up Python 3.7
-        uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+
+      - name: Set Up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.7"
+          python-version: "3.9"
+          cache: "pip"
 
-      - uses: actions/checkout@v1
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v2.3.0
+        with:
+          poetry-version: "1.6.1"
 
-      - name: Lint
+      - name: Install Dependencies
+        shell: bash
         run: |
-          pip install flake8
-          flake8 main.py
+          poetry config virtualenvs.create false
+          poetry install --no-root --all-extras
+
+      - name: Run Pytest
+        shell: bash
+        run: |
+          pytest . -n auto --timeout=30 --cov
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
