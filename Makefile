@@ -1,15 +1,13 @@
 .PHONY: install
 install:
-	pip install --update pip
-	poetry install --no-root --no-dev
-
-.PHONY: install-dev
-install-dev:
-	poetry install --no-root --extras=dev
-
-.PHONY: install-all
-install-all:
+	python3 -m pip install --upgrade pip
 	poetry install --no-root --all-extras
+	poetry run pre-commit install --install-hooks
+
+
+.PHONY: install-release
+install-all:
+	poetry install --no-root --no-dev
 
 .PHONY: build
 build:
@@ -19,15 +17,11 @@ build:
 publish:
 	poetry publish
 
+.PHONY: update
+update:
+	poetry update
+	poetry run pre-commit autoupdate
+
 .PHONY: lint
 lint:
-	set -euxo pipefail
-
-	poetry run ruff .
-	poetry run black .
-	poetry run pyright
-
-	poetry run radon mi --min B .
-	poetry run radon cc --min C .
-
-	poetry run codespell .
+	poetry run pre-commit run --all-files

@@ -80,7 +80,7 @@ docs/_build/
 .pybuilder/
 target/
 
-# Jupyter Notebook
+# Jupiter Notebook
 .ipynb_checkpoints
 
 # IPython
