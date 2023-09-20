@@ -2,6 +2,13 @@
 
 
 
+## v0.1.3 (2023-09-20)
+
+### Fix
+
+* fix(docker): remove release dependencies now that it&#39;s on tag pushes ([`3e051b5`](https://github.com/mattstruble/responsive-images/commit/3e051b53925d209073acc7f8df98f6c1ee15df92))
+
+
 ## v0.1.2 (2023-09-20)
 
 ### Fix
