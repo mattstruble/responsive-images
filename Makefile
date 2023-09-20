@@ -11,11 +11,11 @@ install-all:
 
 .PHONY: build
 build:
-	poetry build
+	docker build . -t responsive:test --target test
 
-.PHONY: publish
-publish:
-	poetry publish
+.PHONY: run
+run: build
+	docker run --rm -it responsive:test
 
 .PHONY: update
 update:

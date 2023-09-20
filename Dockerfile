@@ -108,7 +108,7 @@ RUN python3 -m poetry export -f requirements.txt --with-credentials \
 ### DISTROLESS PY RUNTIME ###
 #############################
 # hadolint ignore=DL3006
-FROM gcr.io/distroless/python3-debian11
+FROM gcr.io/distroless/python3-debian11 as runtime
 # A distroless container image with Python and some basics like SSL certificates
 # https://github.com/GoogleContainerTools/distroless
 
@@ -124,3 +124,16 @@ COPY ./app /app
 
 ENTRYPOINT ["/venv/bin/python3"]
 CMD ["/app/main.py"]
+
+##################
+### TEST IMAGE ###
+##################
+FROM runtime as test
+
+COPY --from=busybox:1.36.1-uclibc /bin/sh /bin/sh
+
+COPY ./tests/files/images ./test
+
+WORKDIR /test
+
+ENTRYPOINT ["/bin/sh"]
