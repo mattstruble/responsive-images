@@ -2,6 +2,15 @@
 
 
 
+## v0.1.4 (2023-09-20)
+
+### Fix
+
+* fix(docker): deploy only on published releases
+
+Signed-off-by: Matt Struble &lt;mattstruble@outlook.com&gt; ([`3cf677a`](https://github.com/mattstruble/responsive-images/commit/3cf677a81acfa739baed60b1760d649631df449a))
+
+
 ## v0.1.3 (2023-09-20)
 
 ### Fix
