@@ -2,6 +2,15 @@
 
 
 
+## v0.1.2 (2023-09-20)
+
+### Fix
+
+* fix(docker): releases to use semver version of tags
+
+Signed-off-by: Matt Struble &lt;mattstruble@outlook.com&gt; ([`bbe9540`](https://github.com/mattstruble/responsive-images/commit/bbe95406060e7ba496f375046b16107591f65c4c))
+
+
 ## v0.1.1 (2023-09-19)
 
 ### Ci
