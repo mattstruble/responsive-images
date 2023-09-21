@@ -3,25 +3,38 @@
 #############################
 FROM debian:11-slim AS deb-extractor
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+#SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# more infos to how extract for the CVE scan relevant parts from deb packages
+# see https://github.com/GoogleContainerTools/distroless/issues/863
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         # install only deps
         curl \
         ca-certificates \
         openssl \
+        apt-rdepends \
         && \
-    apt-get install --no-install-recommends -y -d -o=dir::cache=/tmp \
+    #apt-get install --no-install-recommends -y -d -o=dir::cache=/tmp \
+    apt-get download \
             # Image manipulation dependencies
-            imagemagick \
-            optipng \
-            gifsicle \
-            python3-pil \
-            libjpeg-progs \
-            webp \
+            $(apt-rdepends imagemagick | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
+            $(apt-rdepends optipng | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
+            $(apt-rdepends gifsicle | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
+            $(apt-rdepends python3-pil | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
+            # $(apt-rdepends python-imaging | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
+            # $(apt-rdepends libjpeg-dev | grep -v "^ " | sed 's/libc-dev/libc6/g') \
+            # $(apt-rdepends zlib1g-dev | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
+            # $(apt-rdepends libpng-dev | grep -v "^ " | sed 's/libc-dev/libc6/g' -e 's/debconf-2.0/debconf/g') \
+            # libzstd1 \
+            # libwebp6 \
+            # libjpeg-dev \
+            # libjpeg62 \
+            $(apt-rdepends unrar-free | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
+            $(apt-rdepends webp | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
             && \
     mkdir -p /dpkg/var/lib/dpkg/status.d/ && \
-    cd /tmp/archives && \
+    #cd /tmp/archives && \
     for deb in *.deb; do \
             package_name=$(dpkg-deb -I ${deb} | awk "/^ Package: .*$/ {print $2}"); \
             echo "Process: ${package_name}"; \
@@ -32,6 +45,25 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/*
 
+# remove unneeded files from deb packages like man pages and docs
+RUN find /dpkg/ -type d -empty -delete && \
+    rm -r /dpkg/usr/share/doc/
+
+
+######################
+### PNGOUT BUILDER ###
+######################
+FROM debian:11-slim AS pngout-builder
+
+ARG PNGOUT_VERSION=20200115
+
+WORKDIR /tmp
+
+ADD http://www.jonof.id.au/files/kenutils/pngout-${PNGOUT_VERSION}-linux.tar.gz ./
+RUN tar -xzf pngout-${PNGOUT_VERSION}-linux.tar.gz && \
+    dpkgArch="$(dpkg --print-architecture | sed 's/arm64/aarch64/g')"; \
+    cp pngout-${PNGOUT_VERSION}-linux/${dpkgArch}/pngout /opt/ && \
+    rm -rf /tmp/*
 
 #######################
 ### MOZJPEG BUILDER ###
@@ -114,9 +146,10 @@ FROM gcr.io/distroless/python3-debian11 as runtime
 
 COPY --from=venv-builder /venv /venv
 COPY --from=mozjpeg-builder /opt/mozjpeg /opt/mozjpeg
+COPY --from=pngout-builder /opt/pngout /opt/pngout
 COPY --from=deb-extractor /dpkg /
 
-ENV PATH="/venv/bin:$PATH" \
+ENV PATH="/opt:/venv/bin:$PATH" \
     VIRTUAL_ENV="/venv" \
     PYTHONPATH="/venv:/app:$PYTHONPATH"
 
