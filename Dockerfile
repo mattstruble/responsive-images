@@ -7,6 +7,7 @@ FROM debian:11-slim AS deb-extractor
 
 # more infos to how extract for the CVE scan relevant parts from deb packages
 # see https://github.com/GoogleContainerTools/distroless/issues/863
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         # install only deps
@@ -22,19 +23,10 @@ RUN apt-get update && \
             $(apt-rdepends optipng | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
             $(apt-rdepends gifsicle | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
             $(apt-rdepends python3-pil | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
-            # $(apt-rdepends python-imaging | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
-            # $(apt-rdepends libjpeg-dev | grep -v "^ " | sed 's/libc-dev/libc6/g') \
-            # $(apt-rdepends zlib1g-dev | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
-            # $(apt-rdepends libpng-dev | grep -v "^ " | sed 's/libc-dev/libc6/g' -e 's/debconf-2.0/debconf/g') \
-            # libzstd1 \
-            # libwebp6 \
-            # libjpeg-dev \
-            # libjpeg62 \
             $(apt-rdepends unrar-free | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
             $(apt-rdepends webp | grep -v "^ " | sed 's/debconf-2.0/debconf/g') \
             && \
     mkdir -p /dpkg/var/lib/dpkg/status.d/ && \
-    #cd /tmp/archives && \
     for deb in *.deb; do \
             package_name=$(dpkg-deb -I ${deb} | awk "/^ Package: .*$/ {print $2}"); \
             echo "Process: ${package_name}"; \
@@ -60,6 +52,8 @@ ARG PNGOUT_VERSION=20200115
 WORKDIR /tmp
 
 ADD http://www.jonof.id.au/files/kenutils/pngout-${PNGOUT_VERSION}-linux.tar.gz ./
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN tar -xzf pngout-${PNGOUT_VERSION}-linux.tar.gz && \
     dpkgArch="$(dpkg --print-architecture | sed 's/arm64/aarch64/g')"; \
     cp pngout-${PNGOUT_VERSION}-linux/${dpkgArch}/pngout /opt/ && \
