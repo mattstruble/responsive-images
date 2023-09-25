@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "optimize-images"
-version = "0.2.5"
+version = "0.3.0"
 description = "A multi format lossless image optimizer for web"
 authors = ["Matt Struble <mattstruble@outlook.com>"]
 license = "MIT"
