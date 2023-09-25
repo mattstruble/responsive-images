@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "responsive-images"
+name = "optimize-images"
 version = "0.2.5"
 description = "A multi format lossless image optimizer for web"
 authors = ["Matt Struble <mattstruble@outlook.com>"]
